@@ -1,0 +1,451 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Blackjack</title>
+  <link rel="stylesheet" href="blackjack.css">
+
+  <script  language="javascript">
+
+    //Constants
+    var SUITS = 4;
+    var RANKS = 13 
+
+    var ACE_HIGH = 11;
+    var ACE_LOW  =  1;
+
+    var STARTING_MONEY = 500;
+
+    var suits = ["Spades", "Hearts", "Clubs", "Diamonds"];
+    var ranks = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+    var rankValues = [];
+    rankValues["A"] = 0; rankValues["2"] = 2; rankValues["3"] = 3; rankValues["4"] = 4;
+    rankValues["5"] = 5; rankValues["6"] = 6; rankValues["7"] = 7; rankValues["8"] = 8;
+    rankValues["9"] = 9; 
+    rankValues["10"] = 10; rankValues["J"] = 10; rankValues["Q"] = 10; rankValues["K"] = 10;
+
+    //Objects
+    class Player {
+      constructor(name){
+        this.name = name;
+        this.hand = [];
+        this.handCount = 0;
+        this.money = 0;
+        this.bet = 0;
+        this.blackJack = true;
+      }
+    }
+
+    class Card {
+      constructor(suit,rank,cardNum){
+        this.suit = suit; // (Spades, Hearts, Clubs, Diamonds)
+        this.rank = rank; // (A, 2, 3, 4, 5, 6, 7, 8, 9, 10, J, Q, K)
+        this.cardNum = cardNum;
+        this.played = false;
+      }
+      showCard(){
+        return this.cardNum + ": " + this.rank + " of " + this.suit + "| Worth: " + this.cardValue();
+      }
+      cardValue(){
+        return rankValues[this.rank];
+      }
+    }
+    function Deck(){
+      this.isEmpty = false;
+      let cards = [];
+      let cardNum = 0;
+      for (let i = 0; i < SUITS; i++){
+        for (let j = 0; j < RANKS; j++){
+          cards.push(new Card(suits[i],ranks[j],cardNum));
+          //console.log(cards[cardNum].showCard());
+          cardNum++;
+        }
+      }
+      this.cards = cards;
+    }
+
+    //Globals
+    var HTML_player1Cards;
+    var HTML_dealerCards;
+    var HTML_btn_right;
+    var HTML_btn_left;
+    var HTML_bet;
+    var HTML_player_money;
+    var deck;
+
+    var dealer;
+    var player1;
+
+    var updateBetBox;
+
+    // On Load
+    window.onload = function(){
+      HTML_player1Cards = document.querySelector(".player_cards");
+      HTML_dealerCards = document.querySelector(".dealer_cards");
+
+      HTML_btn_right = document.querySelector(".player_buttons-right");
+      HTML_btn_left  = document.querySelector(".player_buttons-left");
+      HTML_bet       = document.querySelector(".player_bet_visual");
+
+      HTML_player_money = document.querySelector(".player_money");
+
+      dealer = new Player("Dealer");
+      player1 = new Player("Player 1");
+
+      player1.money = STARTING_MONEY;
+      HTML_player_money.innerHTML = "$" + player1.money;
+
+      startRound();
+
+      // let drawInterval = 500;
+      // setTimeout(playerDrawCard,drawInterval);
+      // setTimeout(dealerDrawCardDown,drawInterval*2);
+      // setTimeout(playerDrawCard,drawInterval*3);
+      // setTimeout(dealerDrawCard,drawInterval*4);
+    }
+
+
+    function initializeText(){
+      HTML_bet.innerHTML = "";
+      HTML_btn_left.innerHTML = "";
+      HTML_btn_right.innerHTML = "";
+      HTML_dealerCards.innerHTML = "";
+      HTML_player1Cards.innerHTML = "";
+    }
+    function initializeValues(){
+      player1.handCount = 0;
+      player1.hand = [];
+      player1.blackJack = false;
+
+      dealer.handCount = 0;
+      dealer.hand = [];
+    }
+
+
+    function startRound(){
+      initializeText();
+      initializeValues();
+      
+      waitForBet();
+      deck = new Deck();
+
+      HTML_bet.style.color = "black";
+      HTML_bet.style.fontSize = "80px";
+
+    }
+    function waitForBet(){
+      updateBetBox = setInterval(updateBetTextbox,100);
+      HTML_bet.innerHTML = "<p id='bet_button'>Place Bet</p><input class='bet_textbox' type='number' value='1' id='player_bet_made'>"
+      
+    }
+
+    function updateBetTextbox(){
+      let bet = document.querySelector(".bet_textbox");
+      console.log(bet.value)
+      if (bet.value > player1.money){
+        bet.value = player1.money;
+      }
+      if (bet.value > 0){
+        player1.bet = bet.value;
+        HTML_player_money.style.color = "red";
+        HTML_player_money.innerHTML = "$" + (player1.money - bet.value);
+        let HTML_bet_btn = document.getElementById("bet_button");
+        HTML_bet_btn.addEventListener("click", startHand);
+      }
+    }
+
+    function startHand(){
+      player1.money -= player1.bet;
+      HTML_player_money.style.color = "black";
+      clearInterval(updateBetBox);
+      HTML_bet.innerHTML = "<div class='bet_amt'>" + player1.bet + "</div>";
+      let drawInterval = 300;
+      setTimeout(playerDrawCard,drawInterval);
+      setTimeout(dealerDrawCard,drawInterval*2);
+      setTimeout(playerDrawCard,drawInterval*3);
+      setTimeout(dealerDrawCardDown,drawInterval*4);
+
+      // setTimeout(GUI_turnOne,drawInterval*4.1);
+      setTimeout(function(){
+        if(player1.handCount == 21){
+          blackJack();
+        }
+        else{
+          GUI_turnOne();
+        }
+        console.log(dealer.name + " Count: " + dealer.handCount);
+        console.log(player1.name + " Count: " + player1.handCount);
+      }, drawInterval*4); // End of SetTimeout
+    }
+
+
+    function GUI_turnOne(){
+      // console.log("PLAYER BET: " + player1.bet + " AND MONEY: " + player1.money)
+      if(player1.bet < player1.money){
+        HTML_btn_left.innerHTML  = "<p class='turn_btn' id='btn_hit' >Hit</p>"
+                               + "<p class='turn_btn' id='btn_dble'>Double Down</p>";
+      }
+      else{
+        HTML_btn_left.innerHTML  = "<p class='turn_btn' id='btn_hit' >Hit</p>"
+                               + "<p class='turn_btn_off' id='btn_dble'>Double Down</p>";
+      }
+
+      HTML_btn_right.innerHTML = "<p class='turn_btn' id='btn_stay' >Stay</p>";
+
+
+      let HTML_turn_buttons = document.querySelectorAll(".turn_btn"); 
+      HTML_turn_buttons.forEach(function(b){
+        b.addEventListener("click", buttonAction);
+      })
+    }
+    function GUI_general(){
+      HTML_btn_left.innerHTML  = "<p class='turn_btn' id='btn_hit' >Hit</p>";
+      HTML_btn_right.innerHTML = "<p class='turn_btn' id='btn_stay' >Stay</p>";
+      let HTML_turn_buttons = document.querySelectorAll(".turn_btn"); 
+      HTML_turn_buttons.forEach(function(b){
+        b.addEventListener("click", buttonAction);
+      })
+    }
+
+
+    function buttonAction(){
+      console.log(this.id);
+      if(this.id == "btn_hit"){ 
+        playerDrawCard();
+        GUI_general();
+        console.log(player1.handCount);
+        if(player1.handCount > 21){
+          bust();
+        }
+      }
+      else if(this.id == "btn_dble"){
+        player1.bet *= 2;
+        HTML_bet.innerHTML = "<div class='bet_amt'>" + player1.bet + "</div>";
+        console.log(player1.bet);
+      }
+      else if(this.id == "btn_stay"){
+        dealerStartTurn();
+      }
+      else {
+        console.error("Button Doesn't Have a Feature");
+      }
+    }
+
+    function blackJack(){
+      player1.blackjack = true;
+      let bjack_delay = 800;
+      HTML_btn_left.innerHTML  = "";
+      HTML_btn_right.innerHTML = "";
+      HTML_bet.innerHTML = "<div class='bet_amt'> BlackJack! </div>";
+      HTML_bet.style.color = "limegreen";
+      HTML_bet.style.fontSize = "40px";
+
+      setTimeout(dealerStartTurn,bjack_delay);
+    }
+    function bust(){
+      let bust_delay = 1300;
+      HTML_btn_left.innerHTML  = "<p class='turn_btn_off' id='btn_hit' >Hit</p>";
+      HTML_btn_right.innerHTML = "<p class='turn_btn_off' id='btn_stay' >Stay</p>";
+      HTML_bet.innerHTML = "<div class='bet_amt'> BUST </div>";
+      HTML_bet.style.color = "red";
+      HTML_bet.style.fontSize = "60px";
+      setTimeout(displayLoss,bust_delay);
+    }
+    
+    var results_delay = 2000;
+    function displayLoss(){
+      HTML_bet.innerHTML = "<div class='bet_amt'>-$" + player1.bet + "</div>";
+      HTML_bet.style.color = "red";
+      HTML_bet.style.fontSize = "60px";
+      setTimeout(startRound,results_delay);
+    }
+    function displayWin(){
+      HTML_bet.innerHTML = "<div class='bet_amt'>+$" + player1.bet + "</div>";
+      HTML_bet.style.color = "limegreen";
+      HTML_bet.style.fontSize = "60px";
+      setTimeout(startRound,results_delay);
+    }
+    function displayPush(){
+      HTML_bet.innerHTML = "<div class='bet_amt'>Push</div>";
+      HTML_bet.style.color = "black";
+      setTimeout(startRound,results_delay);
+    }
+
+
+    const dealerDelay = 500; 
+
+    function dealerStartTurn(){
+      HTML_btn_left.innerHTML  = "<p class='turn_btn_off' id='btn_hit' >Hit</p>";
+      HTML_btn_right.innerHTML = "<p class='turn_btn_off' id='btn_stay' >Stay</p>";
+
+      console.log("Starting Dealer's Turn");
+      setTimeout(revealCard,dealerDelay/2);
+      setTimeout(dealerTurn,dealerDelay*2);
+
+    }
+
+
+    /**
+     *  Dealer Turn
+     *  Recursively called by setTimeout
+     *  Sequence:
+     *  - Reveal First Card
+     *   if < 17:
+     *    - Draw a card
+     *  - Determine Win/Loss/Push
+     */
+    function dealerTurn(){
+      if(dealer.handCount < 17){
+        dealerDrawCard();
+        setTimeout(dealerTurn,dealerDelay);
+        console.log("Dealer's Count:"+ dealer.handCount);
+      }
+      else{
+        calculateRound();
+      }
+    }
+
+    function revealCard(){
+      HTML_dealerCards.innerHTML = "";
+      HTML_dealerCards.innerHTML += renderCard(dealer.hand[0], true);
+      HTML_dealerCards.innerHTML += renderCard(dealer.hand[1], true);
+    }
+
+    function calculateRound(){
+      console.log("Player 1 had: $" + player1.money);
+      if(dealer.handCount > 21 || player1.handCount > dealer.handCount){
+        if(player1.blackJack){
+          player1.money += parseInt(player1.bet * 2.5); 
+        }
+        else{
+          player1.money += parseInt(player1.bet * 2);
+        }
+        displayWin();
+      }
+      else if(player1.handCount < dealer.handCount){
+        displayLoss();
+      }
+      else{
+        player1.money = parseInt(player1.bet);
+        displayPush();
+      }
+      console.log("Bet: $"+player1.bet+", Now has: $"+player1.money);
+    }
+
+
+
+
+    function dealerDrawCardDown(){
+      drawCard(dealer, HTML_dealerCards, false);
+    }
+    function dealerDrawCard(){
+      drawCard(dealer, HTML_dealerCards, true);
+    }
+    function playerDrawCard(){
+      drawCard(player1, HTML_player1Cards, true);
+    }
+    function drawCard(player, HTML_cards, isUp) {
+      let randomCard = getRandomCard();
+      //Render the New Card in the Respective Player's HTML
+      HTML_cards.innerHTML += renderCard(randomCard, isUp);
+      player.hand.push(randomCard);
+      let handCount = countHand(player);
+      player.handCount = handCount;
+      ////console.log(player.name + " Count: " + handCount);
+    }
+
+
+    function countHand(pl){
+      let hand = pl.hand;
+      let aceCards = [];
+      let totalCount = 0;
+      //Iterate Over the Deck and Inc the Total with all non-aces
+      hand.forEach(function(c){
+        if (c.rank == "A"){
+          aceCards.push(c);
+        }
+        else{
+          totalCount += c.cardValue();
+        }
+      })
+      aceCards.forEach(function(a){
+        //If the Ace-High (11) plus total value is over the 21 goal
+        // Then Count the Ace as a 1
+        // Else count it as Ace-High (11)
+        let ace = 0;
+        if (totalCount + ACE_HIGH > 21){
+          ace = ACE_LOW;
+        }
+        else {
+          ace = ACE_HIGH;
+        }
+        totalCount += ace;
+        // console.log("ACE IS: " + ace)
+      })
+      return totalCount;
+    }
+
+    /**
+     * Render the Card:
+     *  - Card Back
+     *  - Suit with Rank in it
+     *  - Render the back instead if it's a face down card
+     * Uses an unordered list
+     */
+    function renderCard(card, isUp){
+      let imgSuit = "";
+      let imgRank = card.rank;
+      if(isUp){
+        imgSuit = card.suit + ".png";
+        return "<li class='card'>"
+            +  "<img class='card-img' src='assets/cards/"+ imgSuit +"' />"
+            +  "<div class='card-rank'>" + imgRank + "</div></li>";
+      }
+      else{
+        imgSuit = "CardBack.png";
+        return "<li class='card'>"
+            +  "<img class='card-img' src='assets/cards/"+ imgSuit +"' />";
+      }
+    }
+
+    function getRandomCard() {
+      let chosenCardNum = -1;
+      if (!deck.isEmpty){
+        let notPlayed = [];
+        for (card in deck.cards){
+          if(!deck.cards[card].played){
+            notPlayed.push(deck.cards[card]);
+          }
+        }
+        if (!notPlayed){
+          deck.isEmpty = true;
+          return null;
+        }
+        chosenCardNum = notPlayed[Math.floor(Math.random() * notPlayed.length)].cardNum;
+        deck.cards[chosenCardNum].played = true;
+      }
+      return deck.cards[chosenCardNum];
+    }
+
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="title">BlackJack</div>
+    <div class="dealer"></div>
+    <div class="player">
+      <div class="player_gui">
+        <div class="player_buttons">
+          <div class="player_buttons-right"></div>
+          <div class="player_buttons-left"></div>
+        </div> 
+        <div class="player_bet_visual"></div>
+      </div>
+      <div class="player_money"></div>
+    </div>
+    <div class="card_board">
+      <ul class="dealer_cards"></ul>
+      <ul class="player_cards"></ul>
+    </div>
+  </div>
+
+</body>

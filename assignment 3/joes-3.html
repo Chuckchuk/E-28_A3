@@ -1,0 +1,156 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Joe's Hotdgs 3</title>
+  <link rel="stylesheet" href="Joe's.css">
+
+  <script  language="javascript">
+    var HTML_menuList;
+    var HTML_orderList;
+    var menu_list = [];
+    // var order;
+    var totalCost = 0.00;
+
+    /**
+     * Menu Item Constructor holds:
+     * - Name: To be displayed
+     * - Cost: of individual item
+     * - Quantity: How many are being ordered 
+    **/
+    function MenuItem(name, cost){
+      this.name = name;
+      this.cost = cost;
+      this.quantity = 0;
+      this.quantityCost = itemTotalCost;
+    }
+    //Method for getting the Cost of an Order's Item
+    // I.E. The Quantity of the Order times the Cost of the Item
+    function itemTotalCost(){
+      return this.cost * this.quantity;
+    }
+
+    // On Load
+    window.onload = function(){
+      HTML_menuList = document.querySelector(".menu");
+      HTML_orderList = document.querySelector(".order");
+
+      //Construct each Item
+      item_hotdog = new MenuItem("Hotdog", 4.00);
+      item_fries = new MenuItem("Fries", 3.50);
+      item_soda = new MenuItem("Soda", 1.50);
+      item_sauerkrt = new MenuItem("Sauerkraut", 1.00);
+      //Push each item into a list
+      menu_list.push(item_hotdog, item_fries, item_soda, item_sauerkrt);
+
+      startup();
+
+      let confirm_button = document.querySelectorAll(".order-confirm");
+      confirm_button.forEach(function(b){
+        b.addEventListener("click", startup);
+      })
+    }
+
+    /**
+     * Startup function done each:
+     *  - Page Reload
+     *  - Successful Order
+     */
+    function startup(){
+      HTML_menuList.innerHTML = "";
+      HTML_orderList.innerHTML = "";
+      totalCost = 0.00;
+      menu_list.forEach(function(item){
+        item.quantity = 0;
+        HTML_menuList.innerHTML += "<span class='menu-button' id='"+ item.name +"'>"+ item.name +"<br />$"+ item.cost.toFixed(2) +"</span>"
+      })
+      //Add a Button Listener to the Menu Buttons
+      let menu_buttons = document.querySelectorAll(".menu-button");
+      menu_buttons.forEach(function(b){
+        b.addEventListener("click", addItem);
+      })
+      updateTotalCost();
+    }
+
+    function getID(id){
+      let item = null;
+      menu_list.forEach(function(i){
+        if(i.name == id){
+          item = i;
+        }
+      })
+      //Throw an Error if the ID never matches with any Item
+      if(item == null){
+        console.error("Item ID was Not Found");
+      }
+      return item;
+    }
+    /**
+     * AddItem:
+     *  - Increment the Quantity of each respective Menu Item in the Order.
+     *  - If there was no HTML visual, add one
+     *  - Update the Total Cost
+     */
+    function addItem(){
+      let item = getID(this.id);
+      //Add the visual to the HTML Order List if there was 0 quantity and now 1
+      item.quantity++;
+      if(item.quantity == 1){
+        let element = 
+        //! QUESTION: I don't know if using repeated HTML ID's is good practice or not (Repeated for the HTML_orderList)
+        // But having the repeated ID's helps to easily link them to the Item Object
+        HTML_orderList.innerHTML += "<div class='order-item' id='order-item_"+ item.name +"'>"
+                      + "<span class='sub-button' id='"+ item.name +"'>-</span>" 
+                      + "<span id='order-count_"+ item.name +"'>" + item.quantity + "</span> " 
+                      + item.name + "</div>";
+      }
+      // If the visual already existed, update the visual
+      else{
+        updateOrderItemCount(item);
+      }
+      //update the visual of total Cost
+      updateTotalCost();
+      //Add Event Listeners to the Minus Buttons
+      let HTML_minus_buttons = document.querySelectorAll(".sub-button");
+      HTML_minus_buttons.forEach(function(b){
+        b.addEventListener("click", subItem);
+      })
+    }
+    function subItem(){
+      let item = getID(this.id);
+      if(item.quantity > 0){
+        item.quantity--;
+        updateOrderItemCount(item);
+      }
+      if(item.quantity == 0){
+        let HTML_orderItem = document.getElementById("order-item_"+ this.id);
+        HTML_orderItem.parentElement.removeChild(HTML_orderItem);
+      }
+      updateTotalCost();
+    }
+
+    function updateOrderItemCount(item){
+      let HTML_orderCount = document.getElementById("order-count_" + item.name);
+      HTML_orderCount.innerHTML = item.quantity;
+    }
+ 
+    function updateTotalCost(){
+      totalCost = 0;
+      menu_list.forEach(function(item){
+        totalCost += item.quantityCost();
+      })
+      let HTML_cost = document.getElementById("show-cost");
+      HTML_cost.innerHTML = "$" + totalCost.toFixed(2);
+    }
+  </script>
+
+</head>
+<body>
+  <div class="container">
+    <h1>Joe's Hotdgs (Using a Function Object)</h1>
+    <div class="menu"> </div>
+    <div class="order"> </div>
+    <div class="order-confirm"><span id="show-cost">$0.00</span> Proceed to Checkout</div>
+  </div>
+</body>
+
+</html>
