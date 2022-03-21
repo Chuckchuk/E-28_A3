@@ -1,0 +1,121 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Joe's Hotdgs 2</title>
+  <link rel="stylesheet" href="Joe's.css">
+
+  <script  language="javascript">
+    var menuList;
+    var orderList;
+    var menuItems = [];
+    var order = [];
+    var totalCost = 0.00;
+
+    window.onload = function(){
+      menuList = document.querySelector(".menu");
+      orderList = document.querySelector(".order");
+
+
+      menuItems = {
+        "Hotdog": 4.00,
+        "Fries": 3.50,
+        "Soda": 1.50,
+        "Sauerkraut": 1.00
+      }
+      startup();
+    }
+    function startup(){
+      order = [];
+      menuList.innerHTML = "";
+      orderList.innerHTML = "";
+      for (let o in menuItems){
+        menuList.innerHTML += "<span class='menu-button' id='"+ o +"'>"+ o +"<br />$"+ menuItems[o].toFixed(2) +"</span>"
+
+        order.push(o);
+        order[o] = 0;
+        //orderList.innerHTML += "<div class='order-item'>" + order[o] + " " + o + "</div>"; 
+      }
+      let menu_buttons = document.querySelectorAll(".menu-button");
+      menu_buttons.forEach(function(item){
+        item.addEventListener("click", addItem);
+      })
+      let confirm_button = document.querySelectorAll(".order-confirm");
+      confirm_button.forEach(function(item){
+        item.addEventListener("click", clearAll);
+      })
+    }
+
+    //Takes the ID of the "Item Button" which should be the name of the item
+    function addItem(){
+        //Add to the list if 
+        order[this.id] += 1;
+        console.log(this.id + " has " + order[this.id]);
+        if(order[this.id] == 1){
+          orderList.innerHTML += "<div class='order-item' id='order-item_"+ this.id +"'>"
+                                + "<span class='sub-button' id='"+ this.id +"'>-</span>" 
+                                + "<span id='order-count_"+ this.id +"'>" + order[this.id] + "</span> " 
+                                + this.id + "</div>";
+        }
+        else {
+          updateOrderItemCount(this.id);
+        }
+        //Add Event Listener to the Buttons
+        let minus_buttons = document.querySelectorAll(".sub-button");
+        minus_buttons.forEach(function(item){
+          item.addEventListener("click", subItem);
+        })
+      updateTotalCost();
+    }
+    //Takes the ID of the "Sub Button" which should be the name of the item
+    function subItem(){
+      if(order[this.id] > 0) {
+        order[this.id] -= 1;
+        console.log(this.id + " has " + order[this.id]);
+        updateOrderItemCount(this.id);
+      }
+      if(order[this.id] == 0){
+        let orderItem = document.getElementById("order-item_"+ this.id);
+        orderItem.parentElement.removeChild(orderItem);
+      }
+      updateTotalCost();
+    }
+
+    //Update the OrderCount
+    function updateOrderItemCount(item){
+      let orderCount = document.getElementById("order-count_" + item);
+      orderCount.innerHTML = order[item];
+    }
+    function updateCostVisual(){
+      let costVisual = document.getElementById("show-cost");
+      costVisual.innerHTML = "$" + totalCost.toFixed(2);
+    }
+    function updateTotalCost(){
+      let cost = 0;
+      for (var key in menuItems){
+        cost += menuItems[key] * order[key];
+        //console.log(menuItems[key] + " * " + order[key]);
+      }
+      totalCost = cost;
+      console.log(totalCost);
+      updateCostVisual();
+    }
+
+    function clearAll(){
+      // order.fill(0);
+      totalCost = 0.00;
+      startup();
+      updateCostVisual();
+    }
+  </script>
+
+</head>
+<body>
+  <div class="container">
+    <h1>Joe's Hotdgs (Using a Simple Object)</h1>
+    <div class="menu"> </div>
+    <div class="order"> </div>
+    <div class="order-confirm"><span id="show-cost">$0.00</span> Proceed to Checkout</div>
+  </div>
+</body>
+
+</html>

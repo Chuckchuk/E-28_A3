@@ -1,0 +1,151 @@
+
+@font-face {
+  font-family: cardFont;
+  src: url(assets/fonts/cardcharacters.TTF);
+}
+
+body {
+  background-color: #136C5E;
+}
+
+.title {
+  font-size: 40px;
+}
+
+.player_gui {
+  position:fixed;
+  display: inline-block;
+  margin:auto;
+  height: 100%;
+  width: 100%;
+  text-align: center;
+  user-select: none;
+  z-index: 3;
+}
+
+.player_buttons {
+  position:absolute;
+  display: flex;
+  width:100%;
+  margin-top: 320px;
+  flex-direction: row-reverse;
+  justify-content: center;
+  font-size: 25px;
+}
+.player_buttons-left {
+  width: 160px;
+  margin-right: 120px;
+}
+.player_buttons-right {
+  width: 160px;
+  margin-left: 120px;
+}
+.player_buttons .turn_btn {
+  margin-top:0px;
+  margin-bottom:10px;
+  border: 1px solid black;
+  background-color:lightblue;
+}
+.player_buttons .turn_btn:hover {
+  background-color: darkcyan;
+}
+.player_buttons .turn_btn_off {
+  margin-top:0px;
+  margin-bottom:10px;
+  border: 1px solid black;
+  background-color:cadetblue;
+}
+
+
+
+.player_bet_visual {
+  margin: auto;
+  width: 250px;
+  margin-top: 300px;
+  font-size: 80px;
+}
+
+.player_bet_visual p{
+  font-size: 45px;
+  margin:auto;
+  width: 200px;
+  text-align: center;
+  border: 1px solid black;
+  background-color:lightblue;
+}
+.player_bet_visual p:hover{
+  background-color:darkcyan;
+}
+
+.player_bet_visual .bet_textbox {
+  width: 200px;
+  height: 50px;
+  text-align: center;
+  font-size: 20px;
+  font-family: cardFont;
+}
+.player_bet_visual .bet_amt {
+  position:relative;
+  margin: auto;
+  margin-top: 1em;
+  font-family: cardFont;
+}
+.bet_amt #LOSE {
+  color:red;
+}
+
+.player_money {
+  position:absolute;
+  color: black;
+  font-size: 60px;
+  margin:auto;
+  bottom: 20px;
+  font-family: cardFont;
+}
+
+
+
+.card_board {
+  position:fixed;
+  margin:auto;
+  min-height: 90%;
+  width: 100%;
+  text-align: center;
+}
+
+.dealer_cards {
+  margin:auto;
+  height: 270px;
+}
+.player_cards {
+  padding-top: 150px;
+  height: 270px;
+  margin-top: 0em;
+}
+
+ul {
+  padding: 0;
+  list-style-type: none;
+}
+.card {
+  position: relative;
+  display: inline-block;
+  margin: 0px -65px;
+  text-align: center;
+}
+.card-img {
+  max-width: 270px;
+  height: auto;
+  text-align: center;
+  display: inline-block;
+}
+.card-rank {
+  position: absolute;
+  color:ivory;
+  font-size: 70px;
+  font-family: cardFont;
+  height: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+}
